@@ -8,18 +8,20 @@ api = Blueprint('main', __name__)
 # Keeps the model in memory
 optimizer_instance = None
 
-def get_optimizer():
+def get_optimizer(context):
     global optimizer_instance
     if optimizer_instance is None:
         print("Initializing engine...")
-        optimizer_instance = Engine(current_app.config['MODEL_PATH'])
+        optimizer_instance = Engine(current_app.config['MODELS'][context])
     return optimizer_instance
 
 @api.route('/api/v1/trim', methods=['POST'])
 def trim_portfolio():
-    engine = get_optimizer()
-
     data = request.get_json() or {}
+    market_context = data.get('market_context', 'crypto')
+    
+    engine = get_optimizer(market_context)
+
     source_assets = data.get('source_assets', [])
     constraints = data.get('constraints', {})
     
@@ -30,6 +32,12 @@ def trim_portfolio():
         return jsonify({"error": "Asset list is empty."}), 400
     if len(source_assets) < target_size:
         return jsonify({"error": f"Impossible to reduce: You have {len(source_assets)} assets, but you want {target_size}."}), 400
+
+    if market_context == 'br_stocks':
+        source_assets = [
+            f"{t}.SA" if not t.endswith('.SA') else t 
+            for t in source_assets
+        ]
 
     try:
         optimizable_pool = [asset for asset in source_assets if asset not in locked_assets]
@@ -45,7 +53,7 @@ def trim_portfolio():
              final_selection = final_selection[:target_size]
 
         to_sell = [asset for asset in source_assets if asset not in final_selection]
-        savings_report = calculate_savings(len(source_assets), len(final_selection))
+        savings_report = calculate_savings(market_context, len(source_assets), len(final_selection))
         
         return jsonify({
             "meta": {

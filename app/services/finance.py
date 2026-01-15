@@ -1,11 +1,11 @@
 from flask import current_app
 
-def calculate_savings(initial_count, final_count):
+def calculate_savings(context, initial_count, final_count):
     """
     Calculates the projected annual savings based on avoided transaction fees.
     Formula: (Change in Assets) * (Average Cost) * (Annual Frequency)
     """
-    cost_per_order = current_app.config['TRANSACTION_COST_USD']
+    cost_per_order = current_app.config['COSTS'][context]
     freq = current_app.config['REBALANCE_FREQ_YEARLY']
     
     assets_removed = initial_count - final_count
