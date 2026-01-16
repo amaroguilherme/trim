@@ -68,8 +68,14 @@ class Engine:
     def optimize(self, df_prices, target_k):
         tickers = df_prices.columns.tolist()
         
+        # If only one asset, there is no correlation to calculate or graph to build.
+        if len(tickers) == 1:
+            return tickers[:target_k]
+        
         try:
             x, edge_index = self._build_tensors(df_prices)
+        except IndexError as e:
+            raise IndexError
         except Exception as e:
             print(f"Error in tensor construction: {e}")
             # Fallback
@@ -94,7 +100,7 @@ class Engine:
         )
         
         if solution_vec is None:
-            print("❌ [Core solver returned no results. Fallback.")
+            print("Core solver returned no results. Fallback.")
             return tickers[:target_k]
 
         result = self.translator.decode(solution_vec)
