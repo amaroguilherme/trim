@@ -6,6 +6,7 @@ import { BrainCircuit, Cpu, Wallet, ShieldCheck, TrendingUp, Sparkles } from 'lu
 import ForceGraph from '@/components/ForceGraph';
 import AssetSelector from '@/components/AssetSelector';
 import { TICKERS_B3, TICKERS_CRYPTO } from '@/data/tickers';
+import { translations } from '@/data/locales';
 
 interface TrimResponse {
   financial_impact: {
@@ -31,12 +32,15 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TrimResponse | null>(null);
   const [error, setError] = useState('');
+  const [lang, setLang] = useState<'en' | 'pt'>('en');
 
   // Clears the selection when changing markets
   useEffect(() => {
     setSelectedAssets([]);
     setResult(null);
   }, [market]);
+
+  const t = translations[lang];
 
   const handleOptimize = async () => {
     if (selectedAssets.length === 0) return;
@@ -76,14 +80,23 @@ export default function Home() {
   return (
     <main className="flex flex-col items-center min-h-screen px-4 py-12 md:py-24 max-w-5xl mx-auto selection:bg-emerald-900 selection:text-white">
       
+      <div className="absolute top-6 right-6 z-50">
+        <button 
+          onClick={() => setLang(lang === 'en' ? 'pt' : 'en')}
+          className="bg-zinc-900 border border-zinc-700 text-zinc-300 px-3 py-1 rounded-lg text-xs font-bold hover:bg-zinc-800 transition-colors"
+        >
+          {lang === 'en' ? '🇺🇸 EN' : '🇧🇷 PT'}
+        </button>
+      </div>
+
       {/* --- HEADER --- */}
       <div className="text-center mb-12 space-y-4">
         <h1 className="text-5xl md:text-7xl font-bold tracking-tighter bg-gradient-to-r from-white to-zinc-500 bg-clip-text text-transparent">
-          Trim.
+          {t.hero_title}
         </h1>
         <p className="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto">
-          Pare de acumular. Comece a otimizar. <br/>
-          Use IA para limpar sua carteira e cortar custos.
+          {t.hero_subtitle} <br/>
+          {t.hero_desc}
         </p>
       </div>
 
@@ -95,7 +108,7 @@ export default function Home() {
             market === 'br_stocks' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'
           }`}
         >
-          🇧🇷 Ações B3
+          {t.btn_br}
         </button>
         <button
           onClick={() => setMarket('crypto')}
@@ -103,7 +116,7 @@ export default function Home() {
             market === 'crypto' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'
           }`}
         >
-          ₿ Cripto
+          {t.btn_crypto}
         </button>
       </div>
 
@@ -114,21 +127,21 @@ export default function Home() {
         <div className="space-y-6">
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-400 ml-1">
-                Selecione seus ativos
+                {t.input_label}
             </label>
             
             <AssetSelector 
                 options={market === 'br_stocks' ? TICKERS_B3 : TICKERS_CRYPTO}
                 selected={selectedAssets}
                 onChange={setSelectedAssets}
-                placeholder={market === 'br_stocks' ? "Busque por PETR4, VALE3..." : "Busque por BTC, ETH..."}
+                placeholder={market === 'br_stocks' ? t.input_ph_br : t.input_ph_crypto}
             />
           </div>
 
           <div className="space-y-4">
              <div className="flex justify-between text-sm text-zinc-400">
-                <span>Meta de Ativos: <strong>{targetSize}</strong></span>
-                <span>Max: 10</span>
+                <span>{t.meta_assets} <strong>{targetSize}</strong></span>
+                <span>{t.meta_max}</span>
              </div>
              <input 
                 type="range" min="3" max="10" step="1"
@@ -150,12 +163,12 @@ export default function Home() {
             {loading ? (
                 <>
                     <BrainCircuit className="animate-pulse w-5 h-5" />
-                    Processando...
+                    {t.loading_btn}
                 </>
             ) : (
                 <>
                     <Sparkles className="w-5 h-5" />
-                    Otimizar
+                    {t.optimize_btn}
                 </>
             )}
           </button>
@@ -176,7 +189,7 @@ export default function Home() {
                     <div className="h-[400px] w-full border border-zinc-800 rounded-xl bg-black/50 flex flex-col items-center justify-center text-zinc-600 space-y-4">
                          <BrainCircuit className={`w-12 h-12 ${loading ? 'animate-pulse text-emerald-500' : ''}`} />
                          <p className="text-sm font-mono">
-                             {loading ? "Calculando Topologia..." : "Aguardando Input..."}
+                             {loading ? t.graph_loading : t.graph_waiting}
                          </p>
                     </div>
                 )}
@@ -193,7 +206,7 @@ export default function Home() {
                     <div className="bg-zinc-900/50 border border-zinc-800 p-4 rounded-xl">
                         <div className="flex items-center gap-2 text-emerald-400 mb-2">
                             <ShieldCheck className="w-5 h-5" />
-                            <h3 className="font-bold">Seleção Trim</h3>
+                            <h3 className="font-bold">{t.selection_title}</h3>
                         </div>
                         <div className="flex flex-wrap gap-2">
                             {result.recommendation.portfolio_trim.map(asset => (
@@ -208,10 +221,10 @@ export default function Home() {
                     <div className="bg-zinc-900/50 border border-zinc-800 p-4 rounded-xl">
                         <div className="flex items-center gap-2 text-indigo-400 mb-2">
                             <Wallet className="w-5 h-5" />
-                            <h3 className="font-bold">Economia Projetada</h3>
+                            <h3 className="font-bold">{t.savings_title}</h3>
                         </div>
                         <p className="text-2xl font-bold text-white">
-                            $ {result.financial_impact.estimated_yearly_savings_usd.toFixed(2)} <span className="text-sm text-zinc-500 font-normal">/ano</span>
+                            $ {result.financial_impact.estimated_yearly_savings_usd.toFixed(2)} <span className="text-sm text-zinc-500 font-normal">{t.savings_unit}</span>
                         </p>
                         <p className="text-xs text-zinc-500 mt-1">
                           {result.financial_impact.calculation_logic}
@@ -223,28 +236,28 @@ export default function Home() {
       </div>
 
       <div className="mt-32 w-full border-t border-zinc-900 pt-16">
-          <h2 className="text-center text-2xl font-bold mb-12 text-zinc-300">O que fazemos</h2>
+          <h2 className="text-center text-2xl font-bold mb-12 text-zinc-300">{t.footer_title}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="p-6 bg-zinc-950 border border-zinc-900 rounded-xl hover:border-zinc-700 transition-colors">
                   <div className="w-10 h-10 bg-zinc-900 rounded-lg flex items-center justify-center mb-4 text-white">
                       <BrainCircuit className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-lg mb-2">Rede Neural em Grafos</h3>
-                  <p className="text-zinc-500 text-sm">Não usamos correlação simples. Aprendemos a topologia do mercado para detectar riscos ocultos que planilhas não veem.</p>
+                  <h3 className="font-bold text-lg mb-2">{t.tech_1_title}</h3>
+                  <p className="text-zinc-500 text-sm">{t.tech_1_desc}</p>
               </div>
               <div className="p-6 bg-zinc-950 border border-zinc-900 rounded-xl hover:border-zinc-700 transition-colors">
                   <div className="w-10 h-10 bg-zinc-900 rounded-lg flex items-center justify-center mb-4 text-orange-500">
                       <Cpu className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-lg mb-2">Engine de análise</h3>
-                  <p className="text-zinc-500 text-sm">Otimização combinatória de alta performance. Testamos milhares de cenários em milissegundos.</p>
+                  <h3 className="font-bold text-lg mb-2">{t.tech_2_title}</h3>
+                  <p className="text-zinc-500 text-sm">{t.tech_2_desc}</p>
               </div>
               <div className="p-6 bg-zinc-950 border border-zinc-900 rounded-xl hover:border-zinc-700 transition-colors">
                   <div className="w-10 h-10 bg-zinc-900 rounded-lg flex items-center justify-center mb-4 text-emerald-500">
                       <TrendingUp className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-lg mb-2">Foco em Resultado</h3>
-                  <p className="text-zinc-500 text-sm">Treinado com anos de dados históricos para priorizar consistência e dividendos, ignorando ruído de curto prazo.</p>
+                  <h3 className="font-bold text-lg mb-2">{t.tech_3_title}</h3>
+                  <p className="text-zinc-500 text-sm">{t.tech_3_desc}</p>
               </div>
           </div>
       </div>
