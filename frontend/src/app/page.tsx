@@ -1,71 +1,76 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, BrainCircuit, Cpu, Wallet, ShieldCheck, TrendingUp, Sparkles } from 'lucide-react';
+import { BrainCircuit, Cpu, Wallet, ShieldCheck, TrendingUp, Sparkles } from 'lucide-react';
 import ForceGraph from '@/components/ForceGraph';
+import AssetSelector from '@/components/AssetSelector';
+import { TICKERS_B3, TICKERS_CRYPTO } from '@/data/tickers';
+
+interface TrimResponse {
+  financial_impact: {
+    assets_removed: number;
+    calculation_logic: string;
+    estimated_yearly_savings_usd: number;
+  };
+  meta: {
+    target_requested: number;
+    total_input: number;
+  };
+  recommendation: {
+    portfolio_trim: string[];
+    sell_list: string[];
+  };
+}
 
 export default function Home() {
-  // --- ESTADOS ---
+  // --- STATES ---
   const [market, setMarket] = useState<'br_stocks' | 'crypto'>('br_stocks');
-  const [inputText, setInputText] = useState('');
+  const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
   const [targetSize, setTargetSize] = useState(5);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<string[] | null>(null);
+  const [result, setResult] = useState<TrimResponse | null>(null);
   const [error, setError] = useState('');
 
-  // --- LÓGICA ---
+  // Clears the selection when changing markets
+  useEffect(() => {
+    setSelectedAssets([]);
+    setResult(null);
+  }, [market]);
+
   const handleOptimize = async () => {
-    if (!inputText.trim()) return;
+    if (selectedAssets.length === 0) return;
     
     setLoading(true);
     setResult(null);
     setError('');
 
-    // Prepara lista de ativos (separa por vírgula ou quebra de linha)
-    const assets = inputText
-      .split(/[\n,]+/)
-      .map(s => s.trim().toUpperCase())
-      .filter(s => s.length > 0);
-
-    // Payload para o Backend
     const payload = {
       market_context: market,
-      source_assets: assets,
+      source_assets: selectedAssets,
       constraints: { target_size: targetSize }
     };
 
     try {
-      // IMPORTANTE: Certifique-se que o backend (Flask) está rodando na porta 5000
-      const res = await fetch('http://127.0.0.1:5000/api/v1/trim', {
+      const res = await fetch('http://127.0.0.1:5001/api/v1/trim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error('Falha ao conectar com o servidor Trim.');
+      if (!res.ok) throw new Error('Failed to connect to the Trim server.');
 
       const data = await res.json();
       
-      // Simula um delay pequeno para mostrar a animação de loading (UX)
       setTimeout(() => {
-        setResult(data); // O backend retorna a lista de strings
+        setResult(data);
         setLoading(false);
       }, 1500);
 
     } catch (err) {
-      setError('Erro ao processar. Verifique se o servidor backend está rodando.');
+      setError('Error processing the request. Please check if the backend server is running.');
       setLoading(false);
     }
-  };
-
-  // Cálculos de "Economia Fictícia" para o MVP
-  const calculateSavings = () => {
-    const originalCount = inputText.split(/[\n,]+/).filter(s=>s.trim()).length;
-    const newCount = result?.length || 0;
-    const costPerAsset = market === 'crypto' ? 2.50 : 0.50; // USD approx
-    const savings = (originalCount - newCount) * 12 * costPerAsset;
-    return savings.toFixed(2);
   };
 
   return (
@@ -105,15 +110,18 @@ export default function Home() {
       {/* --- MAIN INTERFACE --- */}
       <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         
-        {/* LADO ESQUERDO: INPUTS */}
+        {/* LEFL SIDE: INPUTS */}
         <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-400 ml-1">Cole seus ativos</label>
-            <textarea
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder={market === 'br_stocks' ? "PETR4, VALE3, WEGE3, ITUB4..." : "BTC, ETH, SOL, LINK, UNI..."}
-              className="w-full h-40 bg-zinc-950 border border-zinc-800 rounded-xl p-4 text-zinc-300 focus:outline-none focus:ring-2 focus:ring-emerald-900 resize-none font-mono text-sm"
+            <label className="text-sm font-medium text-zinc-400 ml-1">
+                Selecione seus ativos
+            </label>
+            
+            <AssetSelector 
+                options={market === 'br_stocks' ? TICKERS_B3 : TICKERS_CRYPTO}
+                selected={selectedAssets}
+                onChange={setSelectedAssets}
+                placeholder={market === 'br_stocks' ? "Busque por PETR4, VALE3..." : "Busque por BTC, ETH..."}
             />
           </div>
 
@@ -132,7 +140,7 @@ export default function Home() {
 
           <button
             onClick={handleOptimize}
-            disabled={loading || !inputText}
+            disabled={loading || selectedAssets.length < 3}
             className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all ${
                 loading 
                 ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' 
@@ -142,12 +150,12 @@ export default function Home() {
             {loading ? (
                 <>
                     <BrainCircuit className="animate-pulse w-5 h-5" />
-                    Processando Neuro-Grafo...
+                    Processando...
                 </>
             ) : (
                 <>
                     <Sparkles className="w-5 h-5" />
-                    Otimizar Agora
+                    Otimizar
                 </>
             )}
           </button>
@@ -155,19 +163,16 @@ export default function Home() {
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
         </div>
 
-        {/* LADO DIREITO: VISUALIZAÇÃO & RESULTADOS */}
+        {/* RIGHT SIDE: VISUALIZATION & RESULTS */}
         <div className="space-y-6">
             
-            {/* Visualizador de Grafo (Sempre visível para dar o visual "Tech") */}
             <div className="relative">
                 {result ? (
-                    // Grafo com resultado
                     <ForceGraph 
-                        assets={inputText.split(/[\n,]+/).filter(s=>s.trim())} 
-                        selected={result} 
+                        assets={selectedAssets}
+                        selected={result.recommendation.portfolio_trim.map(t => t.split('.')[0].split('-')[0])}
                     />
                 ) : (
-                    // Placeholder Animado
                     <div className="h-[400px] w-full border border-zinc-800 rounded-xl bg-black/50 flex flex-col items-center justify-center text-zinc-600 space-y-4">
                          <BrainCircuit className={`w-12 h-12 ${loading ? 'animate-pulse text-emerald-500' : ''}`} />
                          <p className="text-sm font-mono">
@@ -177,66 +182,69 @@ export default function Home() {
                 )}
             </div>
 
-            {/* Resultado Final (Cards) */}
+            {/* Final Result (Cards) */}
             {result && (
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="grid grid-cols-1 md:grid-cols-2 gap-4"
                 >
+                    {/* CARD 1: SELECTION */}
                     <div className="bg-zinc-900/50 border border-zinc-800 p-4 rounded-xl">
                         <div className="flex items-center gap-2 text-emerald-400 mb-2">
                             <ShieldCheck className="w-5 h-5" />
                             <h3 className="font-bold">Seleção Trim</h3>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                            {result.map(asset => (
+                            {result.recommendation.portfolio_trim.map(asset => (
                                 <span key={asset} className="px-3 py-1 bg-emerald-900/30 text-emerald-400 border border-emerald-900/50 rounded text-sm font-mono">
-                                    {asset}
+                                    {asset.split('.')[0].split('-')[0]}
                                 </span>
                             ))}
                         </div>
                     </div>
 
+                    {/* CARD 2: SAVINGS*/}
                     <div className="bg-zinc-900/50 border border-zinc-800 p-4 rounded-xl">
                         <div className="flex items-center gap-2 text-indigo-400 mb-2">
                             <Wallet className="w-5 h-5" />
-                            <h3 className="font-bold">Economia Estimada</h3>
+                            <h3 className="font-bold">Economia Projetada</h3>
                         </div>
                         <p className="text-2xl font-bold text-white">
-                            $ {calculateSavings()} <span className="text-sm text-zinc-500 font-normal">/ano</span>
+                            $ {result.financial_impact.estimated_yearly_savings_usd.toFixed(2)} <span className="text-sm text-zinc-500 font-normal">/ano</span>
                         </p>
-                        <p className="text-xs text-zinc-500 mt-1">Em taxas de manutenção & gas.</p>
+                        <p className="text-xs text-zinc-500 mt-1">
+                          {result.financial_impact.calculation_logic}
+                        </p>
                     </div>
                 </motion.div>
             )}
         </div>
       </div>
 
-      {/* --- HOW IT WORKS (Footer) --- */}
       <div className="mt-32 w-full border-t border-zinc-900 pt-16">
-          <h2 className="text-center text-2xl font-bold mb-12 text-zinc-300">Tecnologia por trás do corte</h2>
+          <h2 className="text-center text-2xl font-bold mb-12 text-zinc-300">O que fazemos</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="p-6 bg-zinc-950 border border-zinc-900 rounded-xl hover:border-zinc-700 transition-colors">
                   <div className="w-10 h-10 bg-zinc-900 rounded-lg flex items-center justify-center mb-4 text-white">
                       <BrainCircuit className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-lg mb-2">IA Neural em Grafos</h3>
-                  <p className="text-zinc-500 text-sm">Não usamos correlação simples. Nossa GNN aprende a topologia do mercado para detectar riscos ocultos que planilhas não veem.</p>
+                  <h3 className="font-bold text-lg mb-2">Rede Neural em Grafos</h3>
+                  <p className="text-zinc-500 text-sm">Não usamos correlação simples. Aprendemos a topologia do mercado para detectar riscos ocultos que planilhas não veem.</p>
               </div>
               <div className="p-6 bg-zinc-950 border border-zinc-900 rounded-xl hover:border-zinc-700 transition-colors">
                   <div className="w-10 h-10 bg-zinc-900 rounded-lg flex items-center justify-center mb-4 text-orange-500">
                       <Cpu className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-lg mb-2">Motor Rust</h3>
-                  <p className="text-zinc-500 text-sm">Otimização combinatória de alta performance. Nosso solver proprietário testa milhares de cenários em milissegundos.</p>
+                  <h3 className="font-bold text-lg mb-2">Engine de análise</h3>
+                  <p className="text-zinc-500 text-sm">Otimização combinatória de alta performance. Testamos milhares de cenários em milissegundos.</p>
               </div>
               <div className="p-6 bg-zinc-950 border border-zinc-900 rounded-xl hover:border-zinc-700 transition-colors">
                   <div className="w-10 h-10 bg-zinc-900 rounded-lg flex items-center justify-center mb-4 text-emerald-500">
                       <TrendingUp className="w-5 h-5" />
                   </div>
                   <h3 className="font-bold text-lg mb-2">Foco em Resultado</h3>
-                  <p className="text-zinc-500 text-sm">Treinado em 5 anos de histórico da B3 para priorizar consistência e dividendos, ignorando ruído de curto prazo.</p>
+                  <p className="text-zinc-500 text-sm">Treinado com anos de dados históricos para priorizar consistência e dividendos, ignorando ruído de curto prazo.</p>
               </div>
           </div>
       </div>

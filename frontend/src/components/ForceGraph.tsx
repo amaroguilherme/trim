@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useMemo } from 'react';
 
-// Importação dinâmica para evitar erro de SSR (Server Side Rendering)
+// Dynamic import to avoid SSR errors
 const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), {
   ssr: false,
   loading: () => <div className="text-zinc-500 text-sm">Carregando Neural Network...</div>
@@ -15,7 +15,7 @@ interface GraphProps {
 }
 
 export default function ForceGraph({ assets, selected }: GraphProps) {
-  // Gera dados simulados do grafo baseados nos ativos inputados
+  // Generates simulated graph data based on the input assets
   const data = useMemo(() => {
     const nodes = assets.map((id) => ({
       id,
@@ -23,10 +23,9 @@ export default function ForceGraph({ assets, selected }: GraphProps) {
       val: selected.includes(id) ? 20 : 5 // Tamanho da bolinha
     }));
 
-    // Cria conexões aleatórias para simular a topologia (apenas visual)
+    // Creates random connections to simulate the topology (visual only)
     const links = [];
     for (let i = 0; i < assets.length; i++) {
-        // Conecta cada ativo a 2 outros aleatórios
         const target = assets[Math.floor(Math.random() * assets.length)];
         if (target !== assets[i]) {
             links.push({ source: assets[i], target: target });
@@ -44,12 +43,12 @@ export default function ForceGraph({ assets, selected }: GraphProps) {
         height={400}
         backgroundColor="#000000"
         nodeLabel="id"
-        nodeColor={(node: any) => node.group === 'selected' ? '#10b981' : '#3f3f46'} // Verde vs Cinza
-        linkColor={() => '#27272a'} // Cinza escuro
+        nodeColor={(node: any) => node.group === 'selected' ? '#10b981' : '#3f3f46'}
+        linkColor={() => '#27272a'}
         nodeRelSize={6}
         linkWidth={1}
         enableNodeDrag={false}
-        enableZoom={false} // Mantém fixo para ser elegante
+        enableZoom={false}
         cooldownTicks={100}
         onEngineStop={() => {}} 
       />
