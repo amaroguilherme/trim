@@ -48,7 +48,6 @@ export default function ForceGraph({ assets, selected }: GraphProps) {
         nodeRelSize={6}
         linkWidth={1}
         enableNodeDrag={false}
-        enableZoom={false}
         cooldownTicks={100}
         onEngineStop={() => {}} 
       />
