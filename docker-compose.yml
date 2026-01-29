@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  api:
+    container_name: trim-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+    ports:
+      - "5001:5001"
+    environment:
+      - FLASK_APP=main.py
+      - FLASK_ENV=production
+    restart: on-failure
+
+  frontend:
+    container_name: trim-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    restart: on-failure
+    environment:
+      - NODE_ENV=production
