@@ -34,6 +34,11 @@ export default function Home() {
   const [error, setError] = useState('');
   const [lang, setLang] = useState<'en' | 'pt'>('en');
 
+  const count = selectedAssets.length;
+  const isTooFew = count > 0 && count < targetSize;
+  const isTooMany = count > 10;
+  const canOptimize = !loading && !isTooFew && !isTooMany && count > 0;
+
   // Clears the selection when changing markets
   useEffect(() => {
     setSelectedAssets([]);
@@ -135,6 +140,7 @@ export default function Home() {
                 selected={selectedAssets}
                 onChange={setSelectedAssets}
                 placeholder={market === 'br_stocks' ? t.input_ph_br : t.input_ph_crypto}
+                emptyMessage={t.no_assets}
             />
           </div>
 
@@ -153,12 +159,12 @@ export default function Home() {
 
           <button
             onClick={handleOptimize}
-            disabled={loading || selectedAssets.length < 3}
-            className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all ${
-                loading 
-                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' 
-                : 'bg-white text-black hover:bg-zinc-200 shadow-[0_0_20px_rgba(255,255,255,0.3)]'
-            }`}
+            disabled={!canOptimize}
+            className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300
+                ${!canOptimize
+                    ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
+                    : 'bg-white text-black hover:bg-zinc-200 shadow-[0_0_20px_rgba(255,255,255,0.3)]'
+                }`}
           >
             {loading ? (
                 <>
@@ -172,6 +178,19 @@ export default function Home() {
                 </>
             )}
           </button>
+
+          <div className="h-6 text-center">
+            {isTooFew && (
+                <p className="text-red-400 text-xs font-mono animate-pulse">
+                    ⚠️ {t.error_min_assets.replace('{{n}}', targetSize.toString())}
+                </p>
+            )}
+            {isTooMany && (
+                <p className="text-red-400 text-xs font-mono animate-pulse">
+                    ⚠️ {t.error_max_assets}
+                </p>
+            )}
+        </div>
           
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
         </div>

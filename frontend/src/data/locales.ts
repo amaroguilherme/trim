@@ -4,34 +4,31 @@ export const translations = {
     hero_subtitle: "Stop hoarding. Start optimizing.",
     hero_desc: "Use AI to clean your portfolio and cut costs.",
     
-    // Botões de Mercado
     btn_br: "🇧🇷 B3 Stocks",
     btn_crypto: "₿ Crypto",
     
-    // Inputs
     input_label: "Select your assets",
     input_ph_br: "Search for PETR4, VALE3...",
     input_ph_crypto: "Search for BTC, ETH...",
+
+    error_min_assets: "Select at least {{n}} assets to optimize.",
+    error_max_assets: "Maximum of 10 assets allowed.",
     
-    // Controles
     meta_assets: "Target Assets:",
+    no_assets: "No assets found.",
     meta_max: "Max: 10",
     
-    // Botão Principal
     optimize_btn: "Optimize",
     loading_btn: "Processing...",
     
-    // Grafo
     graph_loading: "Calculating Topology...",
     graph_waiting: "Waiting for Input...",
     
-    // Resultados
     selection_title: "Trim Selection",
     savings_title: "Projected Savings",
     savings_unit: "/year",
     savings_desc: "In maintenance fees & gas.",
     
-    // Footer / Tech
     footer_title: "What we do",
     tech_1_title: "Multidimensional Risk Modeling",
     tech_1_desc: "We don't use simple correlation. We learn the market topology to detect hidden risks.",
@@ -40,7 +37,6 @@ export const translations = {
     tech_3_title: "Results-Oriented",
     tech_3_desc: "Trained with years of historical data to prioritize consistency and dividends, ignoring short-term noise.",
     
-    // Erros
     error_backend: "Processing error. Check if backend is running."
   },
   pt: {
@@ -54,8 +50,12 @@ export const translations = {
     input_label: "Selecione seus ativos",
     input_ph_br: "Busque por PETR4, VALE3...",
     input_ph_crypto: "Busque por BTC, ETH...",
+
+    error_min_assets: "Selecione pelo menos {{n}} ativos para otimizar.",
+    error_max_assets: "Máximo de 10 ativos permitidos.",
     
     meta_assets: "Meta de Ativos:",
+    no_assets: "Nenhum ativo encontrado.",
     meta_max: "Max: 10",
     
     optimize_btn: "Otimizar",

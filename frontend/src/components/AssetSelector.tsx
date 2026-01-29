@@ -8,9 +8,10 @@ interface AssetSelectorProps {
   selected: string[];
   onChange: (newSelected: string[]) => void;
   placeholder: string;
+  emptyMessage: string;
 }
 
-export default function AssetSelector({ options, selected, onChange, placeholder }: AssetSelectorProps) {
+export default function AssetSelector({ options, selected, onChange, placeholder, emptyMessage }: AssetSelectorProps) {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -102,16 +103,11 @@ export default function AssetSelector({ options, selected, onChange, placeholder
                 ))
             ) : (
                 <div className="px-4 py-4 text-center text-zinc-500 text-sm">
-                    Nenhum ativo encontrado.
+                    {emptyMessage}
                 </div>
             )}
         </div>
       )}
-      
-      {/* Counter */}
-      <div className="absolute bottom-[-24px] right-2 text-xs text-zinc-500">
-         {selected.length} selecionados
-      </div>
 
     </div>
   );
