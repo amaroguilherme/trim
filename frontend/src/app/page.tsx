@@ -39,11 +39,31 @@ export default function Home() {
   const isTooMany = count > 10;
   const canOptimize = !loading && !isTooFew && !isTooMany && count > 0;
 
+  const [lockedAssets, setLockedAssets] = useState<string[]>([]);
+
   // Clears the selection when changing markets
   useEffect(() => {
     setSelectedAssets([]);
+    setLockedAssets([]);
     setResult(null);
   }, [market]);
+
+  const handleToggleLock = (asset: string) => {
+    setLockedAssets(prev => {
+        if (prev.includes(asset)) {
+            return prev.filter(a => a !== asset);
+        } else {
+            if (prev.length >= targetSize) {
+                return prev; 
+            }
+            return [...prev, asset];
+        }
+    });
+  };
+
+  useEffect(() => {
+      setLockedAssets(prev => prev.filter(locked => selectedAssets.includes(locked)));
+  }, [selectedAssets]);
 
   const t = translations[lang];
 
@@ -57,7 +77,9 @@ export default function Home() {
     const payload = {
       market_context: market,
       source_assets: selectedAssets,
-      constraints: { target_size: targetSize }
+      constraints: { target_size: targetSize,
+        locked_assets: lockedAssets
+       }
     };
 
     try {
@@ -139,6 +161,8 @@ export default function Home() {
                 options={market === 'br_stocks' ? TICKERS_B3 : TICKERS_CRYPTO}
                 selected={selectedAssets}
                 onChange={setSelectedAssets}
+                locked={lockedAssets}
+                onToggleLock={handleToggleLock}
                 placeholder={market === 'br_stocks' ? t.input_ph_br : t.input_ph_crypto}
                 emptyMessage={t.no_assets}
             />
