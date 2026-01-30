@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { BrainCircuit, Cpu, Wallet, ShieldCheck, TrendingUp, Sparkles } from 'lucide-react';
+import { BrainCircuit, Cpu, Wallet, ShieldCheck, TrendingUp, Sparkles, Brain, Lightbulb } from 'lucide-react';
 import ForceGraph from '@/components/ForceGraph';
 import AssetSelector from '@/components/AssetSelector';
 import { TICKERS_B3, TICKERS_CRYPTO } from '@/data/tickers';
@@ -21,6 +21,7 @@ interface TrimResponse {
   recommendation: {
     portfolio_trim: string[];
     sell_list: string[];
+    reasoning: string;
   };
 }
 
@@ -243,7 +244,7 @@ export default function Home() {
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                    className="space-y-4"
                 >
                     {/* CARD 1: SELECTION */}
                     <div className="bg-zinc-900/50 border border-zinc-800 p-4 rounded-xl">
@@ -272,6 +273,25 @@ export default function Home() {
                         <p className="text-xs text-zinc-500 mt-1">
                           {result.financial_impact.calculation_logic}
                         </p>
+                    </div>
+
+                    <div className="bg-gradient-to-r from-zinc-900 to-zinc-900/50 border border-zinc-800 p-5 rounded-xl relative overflow-hidden group">
+                      {/* Efeito visual sutil de fundo */}
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+
+                      <div className="flex items-start gap-3 relative z-10">
+                          <div className="p-2 bg-amber-500/10 rounded-lg text-amber-500 mt-1">
+                              <Lightbulb className="w-5 h-5" />
+                          </div>
+                          <div>
+                              <h3 className="font-bold text-zinc-200 text-sm uppercase tracking-wider mb-1">
+                                  {t.analysis_title}
+                              </h3>
+                              <p className="text-zinc-400 text-sm leading-relaxed">
+                                  {result.recommendation.reasoning || "Optimization completed based on market topology."}
+                              </p>
+                          </div>
+                      </div>
                     </div>
                 </motion.div>
             )}

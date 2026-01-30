@@ -64,6 +64,46 @@ class Engine:
         edge_index = edge_index.to(self.device)
 
         return x_tensor, edge_index
+    
+    def _generate_reasoning(self, selected_assets, all_assets, corr_matrix):
+        """
+            Compare the rejected assets with the selected ones to explain the cut.
+        """
+        rejected = [t for t in all_assets if t not in selected_assets]
+        reasons = []
+        
+        if not rejected:
+            return "Portfolio maintained in its entirety."
+        
+        ticker_to_idx = {name: i for i, name in enumerate(all_assets)}
+
+        for bad_asset in rejected:
+            bad_idx = ticker_to_idx.get(bad_asset)
+            
+            max_corr = -1.0
+            substitute = None
+            
+            for good_asset in selected_assets:
+                good_idx = ticker_to_idx.get(good_asset)
+                
+                corr_val = corr_matrix[bad_idx, good_idx]
+                
+                if corr_val > max_corr:
+                    max_corr = corr_val
+                    substitute = good_asset
+        
+            pct = int(max_corr * 100)
+            
+            if max_corr > 0.85:
+                reasons.append(f"We removed {bad_asset} due to redundancy with {substitute} ({pct}% similarity).")
+            elif max_corr > 0.60:
+                reasons.append(f"{bad_asset} replaced by {substitute} (similar correlation)")
+                
+        if not reasons:
+            return "Assets were removed to maximize the Sharpe Ratio and reduce overall variance."
+
+        # Returns only the top 2 reasons
+        return " • ".join(reasons[:2]) + "."
 
     def optimize(self, df_prices, target_k):
         tickers = df_prices.columns.tolist()
@@ -89,6 +129,12 @@ class Engine:
             time_series_data=prices_array, 
             labels=tickers
         )
+        
+        prices_for_corr = prices_array.copy()
+        if prices_for_corr.shape[0] > prices_for_corr.shape[1]:
+            prices_for_corr = prices_for_corr.T
+        
+        correlation_matrix = np.corrcoef(prices_for_corr)
 
         print(f"Sending data to the core engine...")
 
@@ -112,5 +158,11 @@ class Engine:
             # If you want to use scores to break ties, you would have to ask the engine to return the scores as well.
             # For now, a simple cutoff:
             selected = selected[:target_k]
+            
+        reasoning = self._generate_reasoning(
+            selected_assets=selected,
+            all_assets=tickers,
+            corr_matrix=correlation_matrix
+        )
         
-        return selected
+        return selected, reasoning

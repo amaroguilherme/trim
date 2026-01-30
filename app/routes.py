@@ -46,7 +46,7 @@ def trim_portfolio():
 
         if adjusted_target > 0 and optimizable_pool:
             df_prices = download_clean_data(optimizable_pool)
-            optimized_assets = engine.optimize(df_prices, adjusted_target)
+            optimized_assets, reasoning = engine.optimize(df_prices, adjusted_target)
             final_selection.extend(optimized_assets)
         
         if len(final_selection) > target_size:
@@ -62,7 +62,8 @@ def trim_portfolio():
             },
             "recommendation": {
                 "portfolio_trim": final_selection,
-                "sell_list": to_sell
+                "sell_list": to_sell,
+                "reasoning": reasoning
             },
             "financial_impact": savings_report
         }), 200

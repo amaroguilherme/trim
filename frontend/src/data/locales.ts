@@ -28,6 +28,8 @@ export const translations = {
     savings_title: "Projected Savings",
     savings_unit: "/year",
     savings_desc: "In maintenance fees & gas.",
+
+    analysis_title: "AI Reasoning",
     
     footer_title: "What we do",
     tech_1_title: "Multidimensional Risk Modeling",
@@ -68,6 +70,8 @@ export const translations = {
     savings_title: "Economia Projetada",
     savings_unit: "/ano",
     savings_desc: "Em taxas de manutenção e gas.",
+
+    analysis_title: "Análise da IA",
     
     footer_title: "O que fazemos",
     tech_1_title: "Modelagem Multidimensional de Risco",
