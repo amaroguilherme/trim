@@ -12,15 +12,16 @@ const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), {
 interface GraphProps {
   assets: string[];
   selected: string[];
+  cut: string[];
 }
 
-export default function ForceGraph({ assets, selected }: GraphProps) {
+export default function ForceGraph({ assets, selected, cut }: GraphProps) {
   // Generates simulated graph data based on the input assets
   const data = useMemo(() => {
     const nodes = assets.map((id) => ({
       id,
       group: selected.includes(id) ? 'selected' : 'discarded',
-      val: selected.includes(id) ? 20 : 5 // Tamanho da bolinha
+      val: selected.includes(id) ? 20 : 5
     }));
 
     // Creates random connections to simulate the topology (visual only)
@@ -43,7 +44,12 @@ export default function ForceGraph({ assets, selected }: GraphProps) {
         height={400}
         backgroundColor="#000000"
         nodeLabel="id"
-        nodeColor={(node: any) => node.group === 'selected' ? '#10b981' : '#3f3f46'}
+        nodeColor={(node: any) => {
+            if (selected.includes(node.id)) return '#10b981';
+            if (cut.includes(node.id)) return '#ef4444';
+            return '#3f3f46';
+        }}
+        nodeVal={(node: any) => selected.includes(node.id) ? 3 : 1}
         linkColor={() => '#27272a'}
         nodeRelSize={6}
         linkWidth={1}

@@ -223,18 +223,34 @@ export default function Home() {
         {/* RIGHT SIDE: VISUALIZATION & RESULTS */}
         <div className="space-y-6">
             
-            <div className="relative">
-                {result ? (
-                    <ForceGraph 
-                        assets={selectedAssets}
-                        selected={result.recommendation.portfolio_trim.map(t => t.split('.')[0].split('-')[0])}
-                    />
-                ) : (
-                    <div className="h-[400px] w-full border border-zinc-800 rounded-xl bg-black/50 flex flex-col items-center justify-center text-zinc-600 space-y-4">
-                         <BrainCircuit className={`w-12 h-12 ${loading ? 'animate-pulse text-emerald-500' : ''}`} />
-                         <p className="text-sm font-mono">
-                             {loading ? t.graph_loading : t.graph_waiting}
-                         </p>
+            <div className="relative h-[400px] w-full rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-950/50 shadow-inner">
+                 <ForceGraph 
+                    assets={selectedAssets} 
+                    selected={result ? result.recommendation.portfolio_trim : []}
+                    cut={result ? result.recommendation.sell_list : []}
+                 />
+                 
+                 {loading && (
+                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-10">
+                         <p className="text-emerald-400 font-mono text-sm animate-pulse">{t.graph_loading}</p>
+                     </div>
+                 )}
+                 {!result && !loading && selectedAssets.length === 0 && (
+                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                         <p className="text-zinc-600 font-mono text-xs">{t.graph_waiting}</p>
+                     </div>
+                 )}
+                 
+                 {result && (
+                    <div className="absolute bottom-4 left-4 flex gap-3 bg-black/60 p-2 rounded-lg backdrop-blur-md border border-zinc-800 text-[10px] font-mono uppercase tracking-wider z-20">
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                            <span className="text-zinc-300">Trim</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-2 h-2 rounded-full bg-red-500 opacity-80"></div>
+                            <span className="text-zinc-400">Cut</span>
+                        </div>
                     </div>
                 )}
             </div>
