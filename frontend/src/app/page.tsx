@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { BrainCircuit, Cpu, Wallet, ShieldCheck, TrendingUp, Sparkles, Brain, Lightbulb } from 'lucide-react';
+import { BrainCircuit, Cpu, Wallet, ShieldCheck, TrendingUp, Sparkles, RotateCcw, Lightbulb } from 'lucide-react';
 import ForceGraph from '@/components/ForceGraph';
 import AssetSelector from '@/components/AssetSelector';
 import { TICKERS_B3, TICKERS_CRYPTO } from '@/data/tickers';
@@ -42,12 +42,23 @@ export default function Home() {
 
   const [lockedAssets, setLockedAssets] = useState<string[]>([]);
 
+  const isLockedUI = !!result;
+
   // Clears the selection when changing markets
   useEffect(() => {
     setSelectedAssets([]);
     setLockedAssets([]);
     setResult(null);
   }, [market]);
+
+  const handleMainAction = () => {
+    if (isLockedUI) {
+      setResult(null);
+      setError('');
+    } else {
+      handleOptimize();
+    }
+  };
 
   const handleToggleLock = (asset: string) => {
     setLockedAssets(prev => {
@@ -90,7 +101,7 @@ export default function Home() {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error('Failed to connect to the Trim server.');
+      if (!res.ok) throw new Error('Failed to connect to the server.');
 
       const data = await res.json();
       
@@ -100,7 +111,7 @@ export default function Home() {
       }, 1500);
 
     } catch (err) {
-      setError('Error processing the request. Please check if the backend server is running.');
+      setError('Error processing the request. Please check if the server is running.');
       setLoading(false);
     }
   };
@@ -129,7 +140,7 @@ export default function Home() {
       </div>
 
       {/* --- CONTEXT SWITCHER --- */}
-      <div className="flex p-1 bg-zinc-900 rounded-full border border-zinc-800 mb-8">
+      <div className={`flex p-1 bg-zinc-900 rounded-full border border-zinc-800 mb-8 transition-opacity ${isLockedUI ? 'opacity-50 pointer-events-none' : ''}`}>
         <button
           onClick={() => setMarket('br_stocks')}
           className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
@@ -166,10 +177,11 @@ export default function Home() {
                 onToggleLock={handleToggleLock}
                 placeholder={market === 'br_stocks' ? t.input_ph_br : t.input_ph_crypto}
                 emptyMessage={t.no_assets}
+                disabled={isLockedUI}
             />
           </div>
 
-          <div className="space-y-4">
+          <div className={`space-y-4 ${isLockedUI ? 'opacity-50 pointer-events-none' : ''}`}>
              <div className="flex justify-between text-sm text-zinc-400">
                 <span>{t.meta_assets} <strong>{targetSize}</strong></span>
                 <span>{t.meta_max}</span>
@@ -179,29 +191,37 @@ export default function Home() {
                 value={targetSize}
                 onChange={(e) => setTargetSize(parseInt(e.target.value))}
                 className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                disabled={isLockedUI}
              />
           </div>
 
           <button
-            onClick={handleOptimize}
-            disabled={!canOptimize}
-            className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300
-                ${!canOptimize
-                    ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
-                    : 'bg-white text-black hover:bg-zinc-200 shadow-[0_0_20px_rgba(255,255,255,0.3)]'
-                }`}
+              onClick={handleMainAction}
+              disabled={!canOptimize && !isLockedUI} 
+              className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300
+                  ${isLockedUI
+                      ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white border border-zinc-600' 
+                      : !canOptimize
+                          ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
+                          : 'bg-white text-black hover:bg-zinc-200 shadow-[0_0_20px_rgba(255,255,255,0.3)]'
+                  }`}
           >
-            {loading ? (
-                <>
-                    <BrainCircuit className="animate-pulse w-5 h-5" />
-                    {t.loading_btn}
-                </>
-            ) : (
-                <>
-                    <Sparkles className="w-5 h-5" />
-                    {t.optimize_btn}
-                </>
-            )}
+              {loading ? (
+                  <>
+                      <BrainCircuit className="animate-pulse w-5 h-5" />
+                      {t.loading_btn}
+                  </>
+              ) : isLockedUI ? (  
+                  <>
+                      <RotateCcw className="w-5 h-5" />
+                      {lang === 'en' ? 'New Optimization' : 'Nova Otimização'}
+                  </>
+              ) : (
+                  <>
+                      <Sparkles className="w-5 h-5" />
+                      {t.optimize_btn}
+                  </>
+              )}
           </button>
 
           <div className="h-6 text-center">
@@ -226,8 +246,15 @@ export default function Home() {
             <div className="relative h-[400px] w-full rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-950/50 shadow-inner">
                  <ForceGraph 
                     assets={selectedAssets} 
-                    selected={result ? result.recommendation.portfolio_trim : []}
-                    cut={result ? result.recommendation.sell_list : []}
+                    selected={result 
+                        ? result.recommendation.portfolio_trim.map(t => t.replace('.SA', '')) 
+                        : []
+                    }
+                    
+                    cut={result 
+                        ? result.recommendation.sell_list.map(t => t.replace('.SA', '')) 
+                        : []
+                    }
                  />
                  
                  {loading && (
@@ -292,7 +319,6 @@ export default function Home() {
                     </div>
 
                     <div className="bg-gradient-to-r from-zinc-900 to-zinc-900/50 border border-zinc-800 p-5 rounded-xl relative overflow-hidden group">
-                      {/* Efeito visual sutil de fundo */}
                       <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
 
                       <div className="flex items-start gap-3 relative z-10">

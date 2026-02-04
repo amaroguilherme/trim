@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 // Dynamic import to avoid SSR errors
 const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), {
   ssr: false,
-  loading: () => <div className="text-zinc-500 text-sm">Carregando Neural Network...</div>
+  loading: () => <div className="text-zinc-500 text-sm">Loading Neural Network...</div>
 });
 
 interface GraphProps {
