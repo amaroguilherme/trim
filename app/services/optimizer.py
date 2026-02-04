@@ -130,11 +130,10 @@ class Engine:
             labels=tickers
         )
         
-        prices_for_corr = prices_array.copy()
-        if prices_for_corr.shape[0] > prices_for_corr.shape[1]:
-            prices_for_corr = prices_for_corr.T
+        prices_for_corr = prices_array.T
         
         correlation_matrix = np.corrcoef(prices_for_corr)
+        correlation_matrix = np.nan_to_num(correlation_matrix)
 
         print(f"Sending data to the core engine...")
 

@@ -85,9 +85,9 @@ def test_optimize_happy_path(mock_engine_setup, mock_prices_df):
     
     result = trim.optimize(mock_prices_df, target_k=2)
     
-    assert len(result) == 2
-    assert "PETR4" in result
-    assert "WEGE3" in result
+    assert len(result[0]) == 2
+    assert "PETR4" in result[0]
+    assert "WEGE3" in result[0]
 
 def test_optimize_solver_failure(mock_engine_setup, mock_prices_df):
     """The solver crashes or returns None. We need a fallback."""
@@ -159,8 +159,8 @@ def test_target_k_larger_than_assets(mock_engine_setup, mock_prices_df):
     
     result = trim.optimize(mock_prices_df, target_k=10)
     
-    assert len(result) == 5
-    assert set(result) == set(mock_prices_df.columns)
+    assert len(result[0]) == 5
+    assert set(result[0]) == set(mock_prices_df.columns)
 
 def test_zero_price_handling(mock_engine_setup):
     """
@@ -196,7 +196,7 @@ def test_extreme_short_history(mock_engine_setup):
     
     try:
         result = trim.optimize(df, target_k=2)
-        assert len(result) > 0
+        assert len(result[0]) > 0
     except Exception as e:
         pytest.fail(f"It crashed with a short history.: {e}")
 
