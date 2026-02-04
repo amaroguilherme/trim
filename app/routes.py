@@ -1,4 +1,7 @@
+from config import limiter
+
 from flask import Blueprint, request, jsonify, current_app
+
 from app.services.optimizer import Engine
 from app.services.market_data import download_clean_data
 from app.services.finance import calculate_savings
@@ -16,6 +19,7 @@ def get_optimizer(context):
     return optimizer_instance
 
 @api.route('/api/v1/trim', methods=['POST'])
+@limiter.limit("5 per minute")
 def trim_portfolio():
     data = request.get_json() or {}
     market_context = data.get('market_context', 'crypto')

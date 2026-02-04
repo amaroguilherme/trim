@@ -1,5 +1,13 @@
 import os
 
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+limiter = Limiter(
+    key_func=get_remote_address,
+    storage_uri="memory://"
+)
+
 class Config:
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
     
@@ -17,3 +25,6 @@ class Config:
     }
     TRANSACTION_COST_USD = 2.00  # Average cost per order (Fee + Spread + Gas)
     REBALANCE_FREQ_YEARLY = 12   # Adjustment frequency (Monthly)
+    
+    RATELIMIT_DEFAULT = "200 per day, 50 per hour"
+    RATELIMIT_HEADERS_ENABLED = True
