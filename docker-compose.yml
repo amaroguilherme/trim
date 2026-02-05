@@ -12,7 +12,10 @@ services:
       - "5001:5001"
     environment:
       - FLASK_APP=main.py
-      - FLASK_ENV=production
+      - FLASK_DEBUG=${FLASK_DEBUG:-1}
+      - PORT=5001
+      - INTERNAL_API_SECRET=${INTERNAL_API_SECRET}
+      - ALLOW_DIRECT_ACCESS=${ALLOW_DIRECT_ACCESS:-false}
     restart: on-failure
 
   frontend:
@@ -26,4 +29,6 @@ services:
       - api
     restart: on-failure
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
+      - FLASK_API_URL=http://api:5001      
+      - INTERNAL_API_SECRET=${INTERNAL_API_SECRET}

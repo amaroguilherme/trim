@@ -95,23 +95,22 @@ export default function Home() {
     };
 
     try {
-      const res = await fetch('http://127.0.0.1:5001/api/v1/trim', {
+      const res = await fetch('/api/trim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-
-      if (!res.ok) throw new Error('Failed to connect to the server.');
-
+      
       const data = await res.json();
       
-      setTimeout(() => {
-        setResult(data);
-        setLoading(false);
-      }, 1500);
+      if (!res.ok) {
+          throw new Error(data.error || 'Optimization error');
+      }
 
-    } catch (err) {
-      setError('Error processing the request. Please check if the server is running.');
+      setResult(data);
+    } catch (err: any) {
+      setError(err.message || 'Error processing.');
+    } finally {
       setLoading(false);
     }
   };

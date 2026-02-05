@@ -18,6 +18,20 @@ def get_optimizer(context):
         optimizer_instance = Engine(current_app.config['MODELS'][context])
     return optimizer_instance
 
+@api.before_request
+def restrict_access():
+    if request.method == 'OPTIONS':
+        return
+    
+    if current_app.config.get('ALLOW_DIRECT_ACCESS') == True:
+        return
+
+    expected = current_app.config.get('INTERNAL_API_SECRET')
+    incoming = request.headers.get('X-Internal-Secret')
+    
+    if incoming != expected:
+        return jsonify({"error": "Forbidden", "message": "Access Denied."}), 403
+
 @api.route('/api/v1/trim', methods=['POST'])
 @limiter.limit("5 per minute")
 def trim_portfolio():
