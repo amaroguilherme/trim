@@ -3,4 +3,4 @@ from app import create_app
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5001, debug=True) #TODO: REVISIT IP STRATEGY
+    app.run(host='0.0.0.0', port=7860, debug=False) #TODO: REVISIT IP STRATEGY

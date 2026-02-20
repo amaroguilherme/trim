@@ -1,9 +1,4 @@
-
 FROM python:3.13-slim AS builder
-
-ARG GITHUB_TOKEN
-
-RUN if [ -z "$GITHUB_TOKEN" ]; then echo "ERROR: GITHUB_TOKEN missing."; exit 1; fi
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -28,25 +23,32 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN --mount=type=secret,id=GITHUB_TOKEN,mode=0444,required=true \
+    TOKEN=$(cat /run/secrets/GITHUB_TOKEN | tr -d '\n\r') && \
+    sed -i "s|git+https://github.com/|git+https://${TOKEN}@github.com/|g" requirements.txt && \
+    pip install --no-cache-dir -r requirements.txt
 
 FROM python:3.13-slim AS runner
 
-WORKDIR /app
+RUN useradd -m -u 1000 user
+
+ENV HOME=/home/user \
+    PATH="/opt/venv/bin:$PATH"
+
+WORKDIR $HOME/app
 
 RUN apt-get update && apt-get install -y \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+COPY --from=builder --chown=user:user /opt/venv /opt/venv
 
-COPY . .
+COPY --chown=user:user . $HOME/app/
 
-EXPOSE 5001
+EXPOSE 7860
 ENV FLASK_APP=main.py
+ENV PORT=7860
 
-RUN adduser --disabled-password --gecos '' appuser
-USER appuser
+USER user
 
 CMD ["python", "main.py"]
