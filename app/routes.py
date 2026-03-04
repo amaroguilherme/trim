@@ -90,3 +90,8 @@ def trim_portfolio():
         return jsonify({"error": str(ve)}), 400
     except Exception as e:
         return jsonify({"error": "Internal error", "details": str(e)}), 500
+
+@api.route('/api/v1/health', methods=['GET'])
+@limiter.limit("5 per minute")
+def health():
+    return jsonify({"message": "I can hear you"}), 200
