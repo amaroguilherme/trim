@@ -10,11 +10,11 @@ def download_clean_data(tickers):
     if not tickers:
         return pd.DataFrame()
 
-    print(f"Downloading {len(tickers)} assets (Window: 3 months)...")
+    print(f"Downloading {len(tickers)} assets (Window: 6 months)...")
     
-    # Reduce by 3 months to ensure a safety margin against holidays
+    # Reduce by 6 months to ensure a safety margin against holidays
     # auto_adjust=True adjusts for dividends and splits
-    df = yf.download(tickers, period="3mo", progress=False, auto_adjust=True)['Close']
+    df = yf.download(tickers, period="6mo", progress=False, auto_adjust=True)['Close']
     
     # Handling the case where only one asset is received
     if isinstance(df, pd.Series):
